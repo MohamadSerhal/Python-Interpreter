@@ -1,0 +1,6 @@
+java -cp .;antlr-3.5.2-complete.jar org.antlr.Tool T_semantics.g
+javac -cp .;antlr-3.5.2-complete.jar *.java
+java -cp .;antlr-3.5.2-complete.jar TestT
+
+// I use this command to run the last part of the compilation since our class was compiled at a higher version of Java than the version with which we tried to run it. since the command prompt tries to run it with java 8 and we compiled it with java 11
+"C:\Program Files\Java\jdk-11.0.4\bin\java" -cp .;antlr-3.5.2-complete.jar TestT

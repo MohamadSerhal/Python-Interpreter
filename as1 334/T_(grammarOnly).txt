@@ -1,0 +1,97 @@
+grammar T_semantics;
+
+
+ANDOR : ('and'|'or');
+NOT : 'not';
+INT : ('-')? ('0'..'9')+  ; 
+ID : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9')* ;
+STRING : ('\'') ('a'..'z'|'A'..'Z'|'0'..'9') ('a'..'z'|'A'..'Z'|'0'..'9')* ('\'') ;  // string can be anything excluding the 'and' and 'or'     
+OP : '==' | '!=' | '<' | '<=' | '>' | '>=';
+
+
+// consume whitespace
+WS  :   (' '|'\t'|'\n'|'\r')+ {skip();} ;
+
+// consume comments
+COMMENTS  :   ('//')~('\n'|'\r')* {skip();} ; 
+
+prog : (stmt)+;
+
+stmt
+	: list_top
+	| list_concatenation
+	| list_slicing
+	| simplified
+	| print_list
+	| list_assign
+	;
+
+
+print_list
+	: 'print' '(' ID ')'  
+	;
+
+type returns [Object val]
+	: INT 
+	| STRING  
+	| ID
+	;
+
+
+// takes the elements of the list form 'list'
+list_top 
+	: ID '=' list  
+	;
+
+list_assign 
+	: ID '[' INT ']' '=' type  
+	;
+
+
+// returns lista to list_top so it can be used in function addList
+list returns [ArrayList<Object> lis]
+	: '[' (list_element)? ']' 
+	;
+
+
+// takes Array list lista from 'list' to add elements to it
+list_element returns [ArrayList<Object> lista]
+	:  type  (',' type )*  
+	;
+
+
+// either concatenate 2 lists or more
+list_concatenation 
+	: ID '=' list '+' list ('+' list )* 
+	|ID '=' ID '+' ID ('+' ID )*  
+	;                			
+
+
+list_slicing 
+	: ID '=' ID '[' INT ':' INT ']'  
+	| ID '=' ID '[' INT ':' ']' 
+	| ID '=' ID '[' ':' INT ']' 
+	; 					  // slice from one index to the other, index to end, begenning to index.
+
+
+
+simplified 
+	: ID '=' '[' 'for' x1=ID 'in' tt2=ID 'if' condition[$tt2.text, $x1.text] ']'
+	;
+
+
+
+condition[String listt, String x] returns [ArrayList<Boolean> result]
+	: '(' condition[$listt, $x] ANDOR condition[$listt, $x] ')' 
+	|  NOT condition[$listt, $x]
+	| '(' operand OP operand ')' 
+	;			             
+
+
+operand returns [Object val]
+	: ID		
+	| INT 		
+	;
+
+
+
